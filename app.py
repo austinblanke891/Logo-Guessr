@@ -6,42 +6,48 @@ st.set_page_config(page_title="Logo Guessr", layout="centered")
 
 st.title("🎯 Logo Guessr")
 
-# Initialize game state
+# Init game
 if "game" not in st.session_state:
     st.session_state.game = new_game()
 
 game = st.session_state.game
 
-# Display logo
-image = get_zoomed_logo(game["logo_path"], game["zoom_level"])
-st.image(image)
+# CENTER CONTENT
+col_left, col_center, col_right = st.columns([1, 2, 1])
 
-# Game over state
-if game["over"]:
-    if game["won"]:
-        st.success(f"🎉 Correct! It was **{game['answer']}**")
+with col_center:
+    image = get_zoomed_logo(
+        game["logo_path"],
+        game["zoom"],
+        game["crop_x"],
+        game["crop_y"]
+    )
+    st.image(image)
+
+    if game["over"]:
+        if game["won"]:
+            st.success(f"🎉 Correct! It was **{game['answer']}**")
+        else:
+            st.error(f"❌ Out of guesses! It was **{game['answer']}**")
+
+        if st.button("Play Again"):
+            st.session_state.game = new_game()
+            st.rerun()
     else:
-        st.error(f"❌ Out of guesses! The answer was **{game['answer']}**")
+        guess = st.text_input("Enter your guess:", key="guess_input")
 
-    if st.button("Play Again"):
-        st.session_state.game = new_game()
-        st.rerun()
+        suggestions = get_suggestions(guess)
 
-else:
-    guess = st.text_input("Enter your guess:")
+        if suggestions:
+            cols = st.columns(len(suggestions))
+            for col, suggestion in zip(cols, suggestions):
+                if col.button(suggestion):
+                    check_guess(game, suggestion)
+                    st.rerun()
 
-    suggestions = get_suggestions(guess)
-
-    if suggestions:
-        cols = st.columns(len(suggestions))
-        for col, suggestion in zip(cols, suggestions):
-            if col.button(suggestion):
-                check_guess(game, suggestion)
+        if st.button("Submit Guess"):
+            if guess.strip():
+                check_guess(game, guess)
                 st.rerun()
 
-    if st.button("Submit Guess"):
-        if guess.strip():
-            check_guess(game, guess)
-            st.rerun()
-
-    st.caption(f"Guesses remaining: {4 - game['guesses']}")
+        st.caption(f"Guesses remaining: {4 - game['guesses']}")
