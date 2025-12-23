@@ -2,39 +2,44 @@ from pathlib import Path
 import random
 from rapidfuzz import process, fuzz
 
-# Base directory (where this file lives)
 BASE_DIR = Path(__file__).resolve().parent
-
-# Logos directory (CASE-SENSITIVE)
 LOGO_DIR = BASE_DIR / "Logos"
 
 MAX_GUESSES = 4
+START_ZOOM = 3.5
+ZOOM_STEP = 0.5
 
 
 def get_team_names():
-    return [
+    return sorted([
         f.stem
         for f in LOGO_DIR.iterdir()
         if f.suffix.lower() == ".png"
-    ]
+    ])
 
 
 def new_game():
-    team_names = get_team_names()
-    team = random.choice(team_names)
+    teams = get_team_names()
+    team = random.choice(teams)
+
+    # Fixed crop position for entire game
+    crop_x = random.uniform(0.25, 0.55)
+    crop_y = random.uniform(0.25, 0.55)
 
     return {
         "answer": team,
         "logo_path": LOGO_DIR / f"{team}.png",
         "guesses": 0,
-        "zoom_level": 4,  # start very zoomed in
+        "zoom": START_ZOOM,
+        "crop_x": crop_x,
+        "crop_y": crop_y,
         "over": False,
-        "won": False
+        "won": False,
     }
 
 
 def get_suggestions(user_input, limit=5):
-    if not user_input:
+    if not user_input.strip():
         return []
 
     matches = process.extract(
@@ -55,8 +60,8 @@ def check_guess(game, guess):
         game["over"] = True
         return True
 
-    # Zoom out after wrong guess
-    game["zoom_level"] = max(1, game["zoom_level"] - 1)
+    # Wrong guess → zoom out slightly (same crop)
+    game["zoom"] = max(1.5, game["zoom"] - ZOOM_STEP)
 
     if game["guesses"] >= MAX_GUESSES:
         game["over"] = True
