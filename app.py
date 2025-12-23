@@ -6,16 +6,16 @@ st.set_page_config(page_title="Logo Guessr", layout="centered")
 
 st.title("🎯 Logo Guessr")
 
-# Init game
+# Initialize game once
 if "game" not in st.session_state:
     st.session_state.game = new_game()
 
 game = st.session_state.game
 
 # CENTER CONTENT
-col_left, col_center, col_right = st.columns([1, 2, 1])
+left, center, right = st.columns([1, 2, 1])
 
-with col_center:
+with center:
     image = get_zoomed_logo(
         game["logo_path"],
         game["zoom"],
@@ -33,17 +33,20 @@ with col_center:
         if st.button("Play Again"):
             st.session_state.game = new_game()
             st.rerun()
+
     else:
         guess = st.text_input("Enter your guess:", key="guess_input")
 
         suggestions = get_suggestions(guess)
 
+        # HORIZONTAL BUTTON LAYOUT (rows of 3)
         if suggestions:
-            cols = st.columns(len(suggestions))
-            for col, suggestion in zip(cols, suggestions):
-                if col.button(suggestion):
-                    check_guess(game, suggestion)
-                    st.rerun()
+            for i in range(0, len(suggestions), 3):
+                row = st.columns(3)
+                for col, suggestion in zip(row, suggestions[i:i + 3]):
+                    if col.button(suggestion):
+                        check_guess(game, suggestion)
+                        st.rerun()
 
         if st.button("Submit Guess"):
             if guess.strip():
