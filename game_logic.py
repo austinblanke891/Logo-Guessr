@@ -6,8 +6,10 @@ BASE_DIR = Path(__file__).resolve().parent
 LOGO_DIR = BASE_DIR / "Logos"
 
 MAX_GUESSES = 4
-START_ZOOM = 3.5
-ZOOM_STEP = 0.5
+
+# HARDER SETTINGS
+START_ZOOM = 5.0      # much tighter initial zoom
+ZOOM_STEP = 0.6       # gradual zoom out
 
 
 def get_team_names():
@@ -22,9 +24,9 @@ def new_game():
     teams = get_team_names()
     team = random.choice(teams)
 
-    # Fixed crop position for entire game
-    crop_x = random.uniform(0.25, 0.55)
-    crop_y = random.uniform(0.25, 0.55)
+    # More deceptive but safe crop (avoids white-only edges)
+    crop_x = random.uniform(0.15, 0.65)
+    crop_y = random.uniform(0.15, 0.65)
 
     return {
         "answer": team,
@@ -60,8 +62,8 @@ def check_guess(game, guess):
         game["over"] = True
         return True
 
-    # Wrong guess → zoom out slightly (same crop)
-    game["zoom"] = max(1.5, game["zoom"] - ZOOM_STEP)
+    # Wrong guess → zoom out slightly, SAME location
+    game["zoom"] = max(1.6, game["zoom"] - ZOOM_STEP)
 
     if game["guesses"] >= MAX_GUESSES:
         game["over"] = True
