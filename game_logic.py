@@ -7,9 +7,8 @@ LOGO_DIR = BASE_DIR / "Logos"
 
 MAX_GUESSES = 4
 
-# HARDER SETTINGS
-START_ZOOM = 5.0      # much tighter initial zoom
-ZOOM_STEP = 0.6       # gradual zoom out
+# Difficulty tuning
+START_ZOOM = 5.0
 
 
 def get_team_names():
@@ -21,10 +20,9 @@ def get_team_names():
 
 
 def new_game():
-    teams = get_team_names()
-    team = random.choice(teams)
+    team = random.choice(get_team_names())
 
-    # More deceptive but safe crop (avoids white-only edges)
+    # Deceptive but safe crop
     crop_x = random.uniform(0.15, 0.65)
     crop_y = random.uniform(0.15, 0.65)
 
@@ -62,8 +60,17 @@ def check_guess(game, guess):
         game["over"] = True
         return True
 
-    # Wrong guess → zoom out slightly, SAME location
-    game["zoom"] = max(1.6, game["zoom"] - ZOOM_STEP)
+    # Progressive zoom-out (harder → easier)
+    if game["guesses"] == 1:
+        zoom_step = 0.4
+    elif game["guesses"] == 2:
+        zoom_step = 0.6
+    elif game["guesses"] == 3:
+        zoom_step = 1.0
+    else:
+        zoom_step = 1.5
+
+    game["zoom"] = max(1.4, game["zoom"] - zoom_step)
 
     if game["guesses"] >= MAX_GUESSES:
         game["over"] = True
